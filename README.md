@@ -87,7 +87,6 @@ make lint
 
 ```bash
 hadolint --failure-threshold warning --config .hadolint.yaml Dockerfile
-shellcheck -x install-python.sh
 shellcheck -x install-python-tool.sh
 markdownlint-cli2 --config .markdownlint.json README.md AGENTS.md
 actionlint -shellcheck=shellcheck .github/workflows/*.yaml
@@ -109,7 +108,6 @@ must contain credentials for `packages.redhat.com`.
 | Location                                 | Linter                                   |
 | ---------------------------------------- | ---------------------------------------- |
 | `Dockerfile` `RUN` shell                 | hadolint (+ shellcheck where applicable) |
-| `install-python.sh`                       | shellcheck                               |
 | `install-python-tool.sh`                  | shellcheck                               |
 | `.github/workflows/*.yaml` inline `run:` | actionlint + shellcheck                  |
 | `README.md`, `AGENTS.md`                 | markdownlint                             |
