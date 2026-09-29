@@ -70,7 +70,17 @@ RUN \
     chmod -R a+rX /usr/local/node24
 
 WORKDIR /workspace
+
+# Install pnpm - required to install Renovate itself
 RUN npm install -g pnpm@${PNPM_VERSION} && npm cache clean --force
+
+# Install python tools
+COPY install-python-tool.sh tools /tmp/python-tools/
+RUN --mount=type=secret,id=netrc,target=/root/.netrc \
+    /tmp/python-tools/install-python-tool.sh /tmp/python-tools/hashin/requirements.txt && \
+    /tmp/python-tools/install-python-tool.sh /tmp/python-tools/pip-tools/requirements.txt pip-compile pip-sync && \
+    /tmp/python-tools/install-python-tool.sh /tmp/python-tools/uv/requirements.txt uv uvx && \
+    rm -rf /tmp/python-tools
 
 # Add renovate user and switch to it
 RUN useradd -lms /bin/bash -u 1001 -g 0 renovate
@@ -81,17 +91,10 @@ WORKDIR /home/renovate
 USER 1001
 
 # Enable renovate user's bin dirs,
-#   ~/.local/bin for Python executables
-#   ~/node_modules/.bin for renovate
-ENV PATH="/home/renovate/.local/bin:/home/renovate/node_modules/.bin:/home/renovate/go/bin:/tmp/renovate/cache/others/go/bin:/usr/local/share/rust/bin:${PATH}"
-
-COPY install-python-tool.sh /home/renovate/install-python-tool.sh
-COPY --chown=1001:0 tools /tmp/tools
-RUN --mount=type=secret,id=netrc,target=/home/renovate/.netrc,uid=1001,gid=0,mode=0400 \
-    ./install-python-tool.sh /tmp/tools/hashin/requirements.txt && \
-    ./install-python-tool.sh /tmp/tools/pip-tools/requirements.txt pip-compile pip-sync && \
-    ./install-python-tool.sh /tmp/tools/uv/requirements.txt uv uvx && \
-    rm -rf /tmp/tools /home/renovate/install-python-tool.sh
+#   ~/.local/bin for renovate cli
+#   ~/go/bin for go tooling
+#   /usr/local/share/rust for rust tools
+ENV PATH="/home/renovate/.local/bin:/home/renovate/go/bin:/usr/local/share/rust/bin:${PATH}"
 
 # Ensure Python requests library uses system root certificates
 # Particularly important for Python virtual environments

@@ -43,11 +43,8 @@ for command in "${commands[@]}"; do
     fi
 done
 
-: "${HOME:?HOME must be set}"
-
-data_home=${XDG_DATA_HOME:-"$HOME/.local/share"}
-venv_dir="$data_home/python-tools/$venv_name"
-bin_dir="$HOME/.local/bin"
+venv_dir="/opt/python-tools/$venv_name"
+bin_dir=/usr/local/bin
 
 if [[ -L $venv_dir ]]; then
     printf 'Error: refusing to clear symlinked environment path: %s\n' "$venv_dir" >&2
