@@ -47,24 +47,26 @@ ENV LANG=C.UTF-8
 
 RUN microdnf update -y && \
     microdnf install -y \
-        subscription-manager-rhsm-certificates \
         git \
+        golang \
+        java-21-openjdk-devel \
+        krb5-devel \
+        libpq-devel \
         nodejs \
         nodejs24 \
         openssl \
+        python3-dnf \
         python3.12 \
         python3.12-pip \
         python3.14 \
-        python3-dnf \
-        golang \
         skopeo \
-        xz \
+        subscription-manager-rhsm-certificates \
         tar \
-        zip unzip \
-        java-21-openjdk-devel \
+        unzip \
         which \
-        libpq-devel \
-        krb5-devel && \
+        xz \
+        zip \
+        && \
     microdnf clean all
 
 # Create a shim for NodeJS 24 so it works with tools that simply execute `npm`, e.g. `pnpm`.
