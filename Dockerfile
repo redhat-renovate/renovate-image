@@ -17,16 +17,8 @@ LABEL description="Mintmaker - Renovate custom image" \
 # OpenShift preflight check requires licensing files under /licenses
 COPY LICENSE /licenses/LICENSE
 
-# The version number is from upstream Renovate, while the `-rpm` suffix
-# is to differentiate the rpm lockfile enabled fork
-ARG RENOVATE_VERSION=44.71.0-rpm
-
 # Specific git commit hash from the redhat-exd-rebuilds/renovate fork
 ARG RENOVATE_REVISION=556b1be775ea0d92733a4bcc985cb87623e80e5f
-
-# NodeJS version used for Renovate, has to satisfy the version
-# specified in Renovate's package.json
-ARG NODEJS_VERSION=24.20.0
 
 ARG PNPM_VERSION=11.25.0
 
