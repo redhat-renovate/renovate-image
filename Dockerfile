@@ -71,6 +71,7 @@ RUN microdnf update -y && \
     microdnf install -y \
         subscription-manager-rhsm-certificates \
         git \
+        nodejs \
         nodejs24 \
         openssl \
         python3.12 \
@@ -88,11 +89,16 @@ RUN microdnf update -y && \
         krb5-devel && \
     microdnf clean all
 
-# Make NodeJS 24 executables the default
+# Create a shim for NodeJS 24 so it works with tools that simply execute `npm`, e.g. `pnpm`.
 RUN \
-    ln -s /usr/bin/npm-24 /usr/local/bin/npm && \
-    ln -s /usr/bin/node-24 /usr/local/bin/node && \
-    ln -s /usr/bin/npx-24 /usr/local/bin/npx
+    mkdir -p /usr/local/node24/bin && \
+    ln -sf "$(command -v node-24)" /usr/local/node24/bin/node && \
+    ln -sf "$(command -v npm-24)"  /usr/local/node24/bin/npm && \
+    ln -sf "$(command -v npx-24)"  /usr/local/node24/bin/npx && \
+    chmod -R a+rX /usr/local/node24
+
+WORKDIR /workspace
+RUN npm install -g pnpm@${PNPM_VERSION} && npm cache clean --force
 
 # Add renovate user and switch to it
 RUN useradd -lms /bin/bash -u 1001 -g 0 renovate
@@ -106,9 +112,6 @@ USER 1001
 #   ~/.local/bin for Python executables
 #   ~/node_modules/.bin for renovate
 ENV PATH="/home/renovate/.local/bin:/home/renovate/node_modules/.bin:/home/renovate/go/bin:/tmp/renovate/cache/others/go/bin:/usr/local/share/rust/bin:${PATH}"
-
-# Install package managers
-RUN npm install pnpm@${PNPM_VERSION} && npm cache clean --force
 
 # Use virtualenv isolation to avoid dependency issues with other global packages
 RUN pip3.12 install --user pipx==${PIPX_VERSION} && pip3.12 cache purge
@@ -149,11 +152,13 @@ RUN git clone --depth=1 --branch renovate-43-268-1 https://github.com/redhat-exd
 # Replace package.json version for this build
 RUN sed -i "s/0.0.0-semantic-release/${RENOVATE_VERSION}/g" package.json
 # Install project dependencies, build and install Renovate
-RUN pnpm install && pnpm build \
+
+RUN export PATH="/usr/local/node24/bin:${PATH}" \
+    && pnpm install && pnpm build \
     && PNPM_HOME=/home/renovate/.local pnpm add -g . \
     && pnpm prune --prod --ignore-scripts \
     && pnpm store prune \
-    && npm cache clean --force
+    && npm-24 cache clean --force
 
 # Run pipx install with the --system-site-packages so rpm-lockfile-prototype can use the system's python3-dnf package
 RUN pipx install --python python3.12 git+https://github.com/konflux-ci/rpm-lockfile-prototype.git@v${RPM_LOCKFILE_PROTOTYPE_VERSION} --system-site-packages && \
