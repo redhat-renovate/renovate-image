@@ -82,6 +82,14 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     /tmp/python-tools/install-python-tool.sh /tmp/python-tools/uv/requirements.txt uv uvx && \
     rm -rf /tmp/python-tools
 
+# Install Go-based packages from source:
+# * helmv4
+RUN \
+    export GOBIN=/usr/local/bin && \
+    go install -a helm.sh/helm/v4/cmd/helm@v${HELM_V4_VERSION} && \
+    go clean -cache -modcache
+
+
 # Add renovate user and switch to it
 RUN useradd -lms /bin/bash -u 1001 -g 0 renovate && \
     mkdir -p /home/renovate/.cache /home/renovate/.local && \
@@ -92,9 +100,8 @@ USER 1001
 
 # Enable renovate user's bin dirs,
 #   ~/.local/bin for renovate cli
-#   ~/go/bin for go tooling
 #   /usr/local/share/rust for rust tools
-ENV PATH="/home/renovate/.local/bin:/home/renovate/go/bin:/usr/local/share/rust/bin:${PATH}"
+ENV PATH="/home/renovate/.local/bin:/usr/local/share/rust/bin:${PATH}"
 
 # Ensure Python requests library uses system root certificates
 # Particularly important for Python virtual environments
@@ -103,12 +110,6 @@ ENV REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 # Set paths for openssl/urllib
 ENV SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 ENV SSL_CERT_DIR=/etc/pki/tls/certs
-
-# Install Go-based packages from source:
-# * helmv4
-RUN \
-    go install -a helm.sh/helm/v4/cmd/helm@v${HELM_V4_VERSION} && \
-    go clean -cache -modcache
 
 # Install the latest Rust toolchain
 COPY --from=rust /usr/local/share/rust /usr/local/share/rust
