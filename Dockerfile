@@ -83,9 +83,9 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     rm -rf /tmp/python-tools
 
 # Add renovate user and switch to it
-RUN useradd -lms /bin/bash -u 1001 -g 0 renovate
-RUN mkdir -p /home/renovate/.cache /home/renovate/.local /home/renovate/.rustup/tmp /home/renovate/.local/share/pnpm/.tools/pnpm
-RUN chown -R 1001:0 /home/renovate && chmod -R 2775 /home/renovate
+RUN useradd -lms /bin/bash -u 1001 -g 0 renovate && \
+    mkdir -p /home/renovate/.cache /home/renovate/.local && \
+    chown -R 1001:0 /home/renovate && chmod -R 2775 /home/renovate
 
 WORKDIR /home/renovate
 USER 1001
