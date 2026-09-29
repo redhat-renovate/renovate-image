@@ -24,33 +24,11 @@ ARG RENOVATE_VERSION=44.71.0-rpm
 # Specific git commit hash from the redhat-exd-rebuilds/renovate fork
 ARG RENOVATE_REVISION=6a2542ca879a3e0945f3090c6c3507de5345cbf7
 
-# Version for the rpm-lockfile-prototype executable from
-# https://github.com/konflux-ci/rpm-lockfile-prototype/tags
-# Do not remove the following line, renovate uses it to propose version updates
-# renovate: datasource=github-tags depName=konflux-ci/rpm-lockfile-prototype versioning=semver
-ARG RPM_LOCKFILE_PROTOTYPE_VERSION=0.30.1
-
-# Version for the refresh-rpm-lockfiles executable from
-# https://github.com/konflux-ci/refresh-rpm-lockfiles/tags
-# Do not remove the following line, renovate uses it to propose version updates
-# renovate: datasource=github-tags depName=konflux-ci/refresh-rpm-lockfiles versioning=semver
-ARG REFRESH_RPM_LOCKFILES_VERSION=0.1.3
-
-# Version for the update-artifacts-lockfile executable from
-# https://github.com/konflux-ci/update-artifacts-lockfile/tags
-# Do not remove the following line, renovate uses it to propose version updates
-# renovate: datasource=github-tags depName=konflux-ci/update-artifacts-lockfile versioning=semver
-ARG UPDATE_ARTIFACTS_LOCKFILE_VERSION=0.2.0
-
 # NodeJS version used for Renovate, has to satisfy the version
 # specified in Renovate's package.json
 ARG NODEJS_VERSION=24.20.0
 
 ARG PNPM_VERSION=11.25.0
-
-# Do not remove the following line, renovate uses it to propose version updates
-# renovate: datasource=pypi depName=pipx
-ARG PIPX_VERSION=1.17.4
 
 # Do not remove the following line, renovate uses it to propose version updates
 # renovate: datasource=github-tags depName=helm/helm
@@ -113,9 +91,6 @@ USER 1001
 #   ~/node_modules/.bin for renovate
 ENV PATH="/home/renovate/.local/bin:/home/renovate/node_modules/.bin:/home/renovate/go/bin:/tmp/renovate/cache/others/go/bin:/usr/local/share/rust/bin:${PATH}"
 
-# Use virtualenv isolation to avoid dependency issues with other global packages
-RUN pip3.12 install --user pipx==${PIPX_VERSION} && pip3.12 cache purge
-
 COPY install-python-tool.sh /home/renovate/install-python-tool.sh
 COPY --chown=1001:0 tools /tmp/tools
 RUN --mount=type=secret,id=netrc,target=/home/renovate/.netrc,uid=1001,gid=0,mode=0400 \
@@ -159,15 +134,5 @@ RUN export PATH="/usr/local/node24/bin:${PATH}" \
     && pnpm prune --prod --ignore-scripts \
     && pnpm store prune \
     && npm-24 cache clean --force
-
-# Run pipx install with the --system-site-packages so rpm-lockfile-prototype can use the system's python3-dnf package
-RUN pipx install --python python3.12 git+https://github.com/konflux-ci/rpm-lockfile-prototype.git@v${RPM_LOCKFILE_PROTOTYPE_VERSION} --system-site-packages && \
-    rm -fr ~/.cache/pipx && pip3.12 cache purge
-
-RUN pipx install --python python3.12 git+https://github.com/konflux-ci/refresh-rpm-lockfiles.git@v${REFRESH_RPM_LOCKFILES_VERSION} && \
-    rm -fr ~/.cache/pipx && pip3.12 cache purge
-
-RUN pipx install --python python3.12 git+https://github.com/konflux-ci/update-artifacts-lockfile.git@v${UPDATE_ARTIFACTS_LOCKFILE_VERSION} && \
-    rm -fr ~/.cache/pipx && pip3.12 cache purge
 
 WORKDIR /workspace
