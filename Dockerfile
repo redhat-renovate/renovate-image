@@ -89,6 +89,9 @@ RUN \
     go install -a helm.sh/helm/v4/cmd/helm@v${HELM_V4_VERSION} && \
     go clean -cache -modcache
 
+# Install the latest Rust toolchain
+COPY --from=rust /usr/local/share/rust /usr/local/share/rust
+ENV PATH="/usr/local/share/rust/bin:${PATH}"
 
 # Add renovate user and switch to it
 RUN useradd -lms /bin/bash -u 1001 -g 0 renovate && \
@@ -98,11 +101,6 @@ RUN useradd -lms /bin/bash -u 1001 -g 0 renovate && \
 WORKDIR /home/renovate
 USER 1001
 
-# Enable renovate user's bin dirs,
-#   ~/.local/bin for renovate cli
-#   /usr/local/share/rust for rust tools
-ENV PATH="/home/renovate/.local/bin:/usr/local/share/rust/bin:${PATH}"
-
 # Ensure Python requests library uses system root certificates
 # Particularly important for Python virtual environments
 ENV REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
@@ -111,10 +109,10 @@ ENV REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 ENV SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 ENV SSL_CERT_DIR=/etc/pki/tls/certs
 
-# Install the latest Rust toolchain
-COPY --from=rust /usr/local/share/rust /usr/local/share/rust
-
 WORKDIR /home/renovate/renovate
+
+# Enable ~/.local/bin for renovate cli
+ENV PATH="/home/renovate/.local/bin:${PATH}"
 
 # Clone Renovate from the fork and checkout the specific commit that includes custom
 # features for RPM lockfile support and Red Hat Container/RPM vulnerability alerts
