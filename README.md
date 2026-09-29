@@ -1,37 +1,25 @@
-# mintmaker-renovate-image
+# Renovate container image
 
-This repo hosts the MintMaker container image.
-This container image is built and pushed to [Quay](https://quay.io/konflux-ci/mintmaker-renovate-image) with Konflux, so it is an automatic process.
+This repository builds a custom [Renovate](https://docs.renovatebot.com/)
+container image based on UBI 10 minimal. It includes the tools Renovate needs
+for dependency updates across several ecosystems and for running in Tekton.
 
-This image is a custom [Renovate](https://docs.renovatebot.com/) image, with the addition of the `rpm` manager: that uses the [rpm-lockfile-prototype](https://github.com/konflux-ci/rpm-lockfile-prototype) to update a lockfile that tracks installed rpms.
-
-Some dependencies are installed in this image in order to have the necessary dependencies to run specific managers. The list of enabled managers is then defined in the Renovate configuration.
-
-## rpm-lockfile support
-
-The main difference of this image with the upstream Renovate image is the support for the `rpm` manager. This is a custom manager.
-In order to support this, we maintain a fork of Renovate [on GitHub](https://github.com/redhat-exd-rebuilds/renovate).
-
-As mentioned before, the `rpm` manager uses the [rpm-lockfile-prototype](https://github.com/konflux-ci/rpm-lockfile-prototype) to update a lockfile that tracks installed rpms.
-
-## Dockerfile design
-
-MintMaker's [Dockerfile](https://github.com/konflux-ci/mintmaker-renovate-image/blob/main/Dockerfile) is built from [ubi10-minimal](https://catalog.redhat.com/en/software/containers/ubi10-minimal/66f16af45db83414cddcfc99).
-
-The container image has to provide the following as a bare minimum:
-
-- `renovate` executable
-  - `node` and `npm` executables to be able to build Renovate from source
-- `tkn` executable for running inside a Tekton pipeline
-- `$PATH` environment variable extended with directories that contain
-  executables of different managers
-- The `renovate` user under which all processes run
-- `git` for cloning the source repositories
+The Dockerfile defines the image contents. The Renovate configuration that
+determines which managers are enabled is maintained separately from this
+repository. `.github/renovate.json` configures dependency updates **to this
+repository**.
 
 ## Running the image
 
-The working directory is `/workspace`. If running in OpenShift, it must
-run as the `renovate` user with UID 1001:
+The image runs as the `renovate` user (UID 1001) and uses `/workspace` as its
+working directory. Run Renovate with:
+
+```bash
+podman run --rm <additional args> custom-renovate renovate
+```
+
+For example, a Tekton task running the image can set the working directory and
+user as follows:
 
 ```yaml
 apiVersion: tekton.dev/v1beta1
@@ -43,23 +31,7 @@ spec:
       runAsUser: 1001
 ```
 
-The command to run is `renovate`. All other commands by default run
-under `/bin/sh`.
-
-## RPM lockfile support
-
-This feature requires `skopeo`, Python, `pip` and `python3-dnf` package
-present in the image.
-
-## Python based managers
-
-Managers such as `poetry`, `pdm` and similar require Python and `pip`,
-through which [pipx](https://github.com/pypa/pipx) is installed. `pipx` is used to isolate virtual
-environments so it's easier to install all required managers independent
-from each other's dependencies.
-
-Some Python based projects can require a specific Python version,
-which is why the Dockerfile adds multiple Python versions via `microdnf install`.
+The image does not set `renovate` as its entrypoint, so pass it as the command.
 
 To install a hash-locked Python CLI tool for all users, run the helper as root, for example:
 `./install-python-tool.sh tools/<tool-name>/requirements.txt`. By default, the helper exposes a
@@ -71,9 +43,19 @@ commands into `/usr/local/bin`.
 
 ## Development
 
+### Build
+
+For builds that access Lightwell content, put the required credentials in
+`~/.netrc` and pass the file as the `netrc` build secret:
+
+```bash
+podman build --secret id=netrc,src=$HOME/.netrc --ulimit nofile=65535:65535 . -t custom-renovate
+```
+
 ### Lint
 
-Install the linters locally, then run `make lint`. CI runs the same checks in the `lint` job.
+Install the linters locally, then run `make lint`. CI runs the same checks in
+the `lint` job.
 
 **macOS (Homebrew + npm):**
 
@@ -104,6 +86,7 @@ The build uses the Red Hat Lightwell Python index for the hash-locked Hatch inst
 must contain credentials for `packages.redhat.com`.
 
 ### Lint coverage
+Lint coverage:
 
 | Location                                 | Linter                                   |
 | ---------------------------------------- | ---------------------------------------- |
@@ -112,27 +95,4 @@ must contain credentials for `packages.redhat.com`.
 | `.github/workflows/*.yaml` inline `run:` | actionlint + shellcheck                  |
 | `README.md`, `AGENTS.md`                 | markdownlint                             |
 
-### Lint baselines
-
-Some pre-existing patterns are baselined so CI blocks only **new** violations. Config lives in `.hadolint.yaml` and `.markdownlint.json`.
-
-#### Hadolint (`.hadolint.yaml`)
-
-| Rule   | Why it is ignored                                                                          |
-| ------ | ------------------------------------------------------------------------------------------ |
-| DL3006 | Base image uses Red Hat catalog tags (`ubi10-minimal`), not semver pins                    |
-| DL3041 | `microdnf install` does not pin individual RPM package versions                            |
-| DL3059 | Many separate `RUN` instructions are intentional for Docker layer caching                  |
-| DL4006 | Piped `RUN` steps (pyenv, rustup) do not use `SHELL … pipefail`; acceptable for this image |
-| DL3042 | `pip`/`pipx` cache purge steps are deliberate during image build                           |
-| DL3013 | Python packages are pinned via `ARG` + `${…}`; hadolint cannot see those substitutions     |
-| DL3062 | `go install …@latest` for jsonnet-bundler is intentional                                   |
-| DL3016 | `npm install --prefix` uses the local Renovate `package.json`, not a bare package name     |
-
-`registry.access.redhat.com` is listed as a trusted registry.
-
-#### Markdownlint (`.markdownlint.json`)
-
-| Rule  | Why it is disabled                                       |
-| ----- | -------------------------------------------------------- |
-| MD013 | Line length — docs contain long URLs and technical prose |
+The `.hadolint.yaml` and `.markdownlint.json` files contain the lint baselines.
