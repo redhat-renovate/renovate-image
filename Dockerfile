@@ -39,6 +39,7 @@ ENV LANG=C.UTF-8
 
 RUN microdnf update -y && \
     microdnf install -y \
+        dotnet-sdk-10.0 \
         git \
         golang \
         java-21-openjdk-devel \
