@@ -22,10 +22,6 @@ ARG RENOVATE_REVISION=556b1be775ea0d92733a4bcc985cb87623e80e5f
 
 ARG PNPM_VERSION=11.25.0
 
-# Do not remove the following line, renovate uses it to propose version updates
-# renovate: datasource=github-tags depName=helm/helm
-ARG HELM_V4_VERSION=4.3.0
-
 # Support multiple Go versions
 ENV GOTOOLCHAIN=auto
 
@@ -84,13 +80,15 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     rm -rf /tmp/python-tools
 
 # Install Go-based packages from source:
-# * helmv4
+COPY tools/helm/go.mod tools/helm/go.sum /tmp/helm/
 RUN \
+    cd /tmp/helm && \
     export GOBIN=/usr/local/bin && \
-    go install -a helm.sh/helm/v4/cmd/helm@v${HELM_V4_VERSION} && \
-    go clean -cache -modcache
+    go install -trimpath --mod=readonly helm.sh/helm/v4/cmd/helm && \
+    rm -rf /tmp/helm && \
+    helm version
 
-# Install the latest Rust toolchain
+# Install the latest Rust oolchain
 COPY --from=rust /usr/local/share/rust /usr/local/share/rust
 ENV PATH="/usr/local/share/rust/bin:${PATH}"
 
