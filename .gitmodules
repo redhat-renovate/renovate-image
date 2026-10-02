@@ -1,0 +1,4 @@
+[submodule "tools/renovate"]
+	path = tools/renovate
+	url = https://github.com/redhat-exd-rebuilds/renovate.git
+	branch = renovate-44-71-0

@@ -17,9 +17,6 @@ LABEL description="Mintmaker - Renovate custom image" \
 # OpenShift preflight check requires licensing files under /licenses
 COPY LICENSE /licenses/LICENSE
 
-# Specific git commit hash from the redhat-exd-rebuilds/renovate fork
-ARG RENOVATE_REVISION=556b1be775ea0d92733a4bcc985cb87623e80e5f
-
 ARG PNPM_VERSION=11.25.0
 
 # Support multiple Go versions
@@ -72,7 +69,10 @@ WORKDIR /workspace
 RUN npm install -g pnpm@${PNPM_VERSION} && npm cache clean --force
 
 # Install python tools
-COPY install-python-tool.sh tools /tmp/python-tools/
+COPY install-python-tool.sh /tmp/python-tools/
+COPY tools/hashin/ /tmp/python-tools/hashin/
+COPY tools/pip-tools/ /tmp/python-tools/pip-tools/
+COPY tools/uv/ /tmp/python-tools/uv/
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     /tmp/python-tools/install-python-tool.sh /tmp/python-tools/hashin/requirements.txt && \
     /tmp/python-tools/install-python-tool.sh /tmp/python-tools/pip-tools/requirements.txt pip-compile pip-sync && \
@@ -113,11 +113,8 @@ WORKDIR /home/renovate/renovate
 # Enable ~/.local/bin for renovate cli
 ENV PATH="/home/renovate/.local/bin:${PATH}"
 
-# Clone Renovate from the fork and checkout the specific commit that includes custom
-# features for RPM lockfile support and Red Hat Container/RPM vulnerability alerts
-RUN git clone --depth=1 --branch 43.268.1 https://github.com/renovatebot/renovate.git . \
-    && git fetch --depth 1 origin ${RENOVATE_REVISION} \
-    && git checkout ${RENOVATE_REVISION}
+# Renovate's source is checked out at the pinned submodule commit before the build.
+COPY --chown=1001:0 tools/renovate/ ./
 
 # Install project dependencies, build and install Renovate
 RUN export PATH="/usr/local/node24/bin:${PATH}" \

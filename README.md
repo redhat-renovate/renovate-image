@@ -43,6 +43,20 @@ commands into `/usr/local/bin`.
 
 ## Development
 
+### Renovate source
+
+Renovate is pinned as a Git submodule under `tools/renovate`. Initialize it before
+building locally:
+
+```bash
+git submodule update --init tools/renovate
+```
+
+The Dockerfile copies that checkout into the image and builds Renovate with
+pnpm. CI must initialize the submodule before dependency prefetch and the image
+build. To prefetch Renovate's locked npm dependencies with Hermeto, process
+`tools/renovate` as a pnpm package.
+
 ### Build
 
 For builds that access Lightwell content, put the required credentials in
