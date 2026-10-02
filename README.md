@@ -59,8 +59,7 @@ build. To prefetch Renovate's locked npm dependencies with Hermeto, process
 
 ### Lint
 
-Install the linters locally, then run `make lint`. CI runs the same checks in
-the `lint` job.
+Install the linters locally, then run `make lint`.
 
 **macOS (Homebrew + npm):**
 
@@ -74,7 +73,7 @@ make lint
 
 ```bash
 hadolint --failure-threshold warning --config .hadolint.yaml Dockerfile
-shellcheck -x install-python-tool.sh
+shellcheck -x install-python-tool.sh hack/configure-netrc-secret.sh
 markdownlint-cli2 --config .markdownlint.json README.md AGENTS.md
 actionlint -shellcheck=shellcheck .github/workflows/*.yaml
 ```
@@ -87,18 +86,27 @@ actionlint -shellcheck=shellcheck .github/workflows/*.yaml
 podman build --secret id=netrc,src=$HOME/.netrc --ulimit nofile=65535:65535 . -t custom-renovate
 ```
 
-The build uses the Red Hat Lightwell Python index for the hash-locked Hatch install, so `~/.netrc`
+The build uses the Red Hat Lightwell Python index for the hash-locked python tools, so `~/.netrc`
 must contain credentials for `packages.redhat.com`.
+
+To access that content from Konflux,
+[create](https://konflux-ci.dev/docs/building/prefetching-dependencies/#creating-the-netrc-secret)
+a `.netrc` Secret in your Konflux namespace, then run the helper on the PipelineRun files:
+
+```bash
+./hack/configure-netrc-secret.sh <secret-name> \
+  .tekton/<pull-request-pipeline>.yaml .tekton/<push-pipeline>.yaml
+```
 
 ### Lint coverage
 
 Lint coverage:
 
-| Location                                 | Linter                                   |
-| ---------------------------------------- | ---------------------------------------- |
-| `Dockerfile` `RUN` shell                 | hadolint (+ shellcheck where applicable) |
-| `install-python-tool.sh`                 | shellcheck                               |
-| `.github/workflows/*.yaml` inline `run:` | actionlint + shellcheck                  |
-| `README.md`, `AGENTS.md`                 | markdownlint                             |
+| Location                                                   | Linter                                   |
+| -----------------------------------------------------      | ---------------------------------------- |
+| `Dockerfile` `RUN` shell                                   | hadolint (+ shellcheck where applicable) |
+| `install-python-tool.sh`, `hack/configure-netrc-secret.sh` | shellcheck                               |
+| `.github/workflows/*.yaml` inline `run:`                   | actionlint + shellcheck                  |
+| `README.md`, `AGENTS.md`                                   | markdownlint                             |
 
 The `.hadolint.yaml` and `.markdownlint.json` files contain the lint baselines.
