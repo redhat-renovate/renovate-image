@@ -30,6 +30,7 @@ ENV NODE_OPTIONS="--use-openssl-ca --max-old-space-size=2816"
 
 ENV LANG=C.UTF-8
 
+# IMPORTANT: The list of packages here must be in-sync with the list of packages in rpms.in.yaml
 RUN microdnf update -y && \
     microdnf install -y \
         dotnet-sdk-10.0 \
