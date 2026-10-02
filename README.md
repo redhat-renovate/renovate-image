@@ -57,15 +57,6 @@ pnpm. CI must initialize the submodule before dependency prefetch and the image
 build. To prefetch Renovate's locked npm dependencies with Hermeto, process
 `tools/renovate` as a pnpm package.
 
-### Build
-
-For builds that access Lightwell content, put the required credentials in
-`~/.netrc` and pass the file as the `netrc` build secret:
-
-```bash
-podman build --secret id=netrc,src=$HOME/.netrc --ulimit nofile=65535:65535 . -t custom-renovate
-```
-
 ### Lint
 
 Install the linters locally, then run `make lint`. CI runs the same checks in
@@ -100,12 +91,13 @@ The build uses the Red Hat Lightwell Python index for the hash-locked Hatch inst
 must contain credentials for `packages.redhat.com`.
 
 ### Lint coverage
+
 Lint coverage:
 
 | Location                                 | Linter                                   |
 | ---------------------------------------- | ---------------------------------------- |
 | `Dockerfile` `RUN` shell                 | hadolint (+ shellcheck where applicable) |
-| `install-python-tool.sh`                  | shellcheck                               |
+| `install-python-tool.sh`                 | shellcheck                               |
 | `.github/workflows/*.yaml` inline `run:` | actionlint + shellcheck                  |
 | `README.md`, `AGENTS.md`                 | markdownlint                             |
 
