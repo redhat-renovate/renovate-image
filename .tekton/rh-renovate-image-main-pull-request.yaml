@@ -32,7 +32,9 @@ spec:
       [
         {"type": "pip", "path": "tools/hashin", "binary": {"py_version": "312"}},
         {"type": "pip", "path": "tools/pip-tools", "binary": {"py_version": "312"}},
-        {"type": "pip", "path": "tools/uv", "binary": {"py_version": "312"}}
+        {"type": "pip", "path": "tools/uv", "binary": {"py_version": "312"}},
+        {"type": "gomod", "path": "tools/helm"},
+        {"type": "rpm", "path": "."}
       ]
   pipelineSpec:
     description: |

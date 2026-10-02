@@ -1,0 +1,28 @@
+---
+# IMPORTANT: The list of packages here must be in-sync with the list of packages in Dockerfile
+packages:
+  - dotnet-sdk-10.0
+  - git
+  - golang
+  - java-21-openjdk-devel
+  - krb5-devel
+  - libpq-devel
+  - nodejs
+  - nodejs24
+  - openssl
+  - python3-dnf
+  - python3.12
+  - python3.12-pip
+  - python3.14
+  - skopeo
+  - subscription-manager-rhsm-certificates
+  - tar
+  - unzip
+  - which
+  - xz
+  - zip
+contentOrigin:
+  repofiles:
+    - ./ubi.repo
+arches:
+  - x86_64
