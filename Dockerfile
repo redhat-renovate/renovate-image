@@ -82,9 +82,8 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
 # Install Go-based packages from source:
 COPY tools/helm/go.mod tools/helm/go.sum /tmp/helm/
 RUN \
-    cd /tmp/helm && \
     export GOBIN=/usr/local/bin && \
-    go install -trimpath --mod=readonly helm.sh/helm/v4/cmd/helm && \
+    go -C /tmp/helm install -trimpath --mod=readonly helm.sh/helm/v4/cmd/helm && \
     rm -rf /tmp/helm && \
     helm version
 
