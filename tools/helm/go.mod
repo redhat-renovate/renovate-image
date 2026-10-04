@@ -1,6 +1,6 @@
 module github.com/redhat-renovate/renovate-image/tools/helm
 
-go 1.26.7
+go 1.27
 
 require helm.sh/helm/v4 v4.3.0
 
