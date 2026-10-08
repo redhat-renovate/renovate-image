@@ -3,7 +3,7 @@
 
 FROM registry.redhat.io/rust-builder-image/rust-rhel10:latest@sha256:4549c1ef33c9241085274bb384632078197948a1a0de2380ab9b40ffbea35bf6 AS rust
 
-FROM registry.access.redhat.com/ubi10-minimal:latest@sha256:204e1531cee54562b107fb31e0b327062fc3d5d67af7cc0d2e66b2c572b9044f
+FROM registry.access.redhat.com/ubi10-minimal:latest@sha256:bcecd3e74c9d03eb1a596c6c8f366775a289d422ac5925ec1539924d762ebf23
 LABEL description="Mintmaker - Renovate custom image" \
       summary="Mintmaker basic container image - a Renovate custom image" \
       maintainer="EXD Rebuilds Guild <exd-guild-rebuilds@redhat.com >" \
