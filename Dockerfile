@@ -1,7 +1,7 @@
 # Build with: podman build --secret id=netrc,src=$HOME/.netrc --ulimit nofile=65535:65535 . -t custom-renovate
 # Run with: podman run --rm <additional args> custom-renovate renovate
 
-FROM registry.redhat.io/rust-builder-image/rust-rhel10:latest@sha256:4549c1ef33c9241085274bb384632078197948a1a0de2380ab9b40ffbea35bf6 AS rust
+FROM registry.redhat.io/rust-builder-image/rust-rhel10:latest@sha256:84f5e862b475a26955504bd50bd55300480b35d64f35f15a93c1122ba6152ad4 AS rust
 
 FROM registry.access.redhat.com/ubi10-minimal:latest@sha256:204e1531cee54562b107fb31e0b327062fc3d5d67af7cc0d2e66b2c572b9044f
 LABEL description="Mintmaker - Renovate custom image" \
